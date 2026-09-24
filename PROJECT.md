@@ -273,12 +273,12 @@ Record every decision here with its date and reason.
 **Next up:**
 1. [x] Scaffold repo + docker-compose (Postgres, MinIO)
 2. [x] FastAPI skeleton + config + health check
-3. [ ] Event schema (Pydantic) + `signal_events` table + `POST /events/batch` (idempotent)
+3. [x] Event schema (Pydantic) + `signal_events` table + `POST /events/batch` (idempotent)
 4. [ ] Core tables (guardians, children with onboarding fields, schools, consents) + Alembic migration
 5. [ ] `POST /onboarding` + `GET /onboarding/options` + age-band helper (test that onboarding sets no scores)
 6. [ ] Week-1 schedule + `GET /children/{id}/today`
-7. [ ] Scoring extractor for `stars_not_clouds`
-8. [ ] Plan engine v0 + fake-child tests
+7. [x] Scoring extractor for `stars_not_clouds`
+8. [x] Plan engine v0 + fake-child tests
 9. [ ] Write `docs/activity-signal-map.md` for the first 3 activities and hand it to the Flutter dev
 
 ## 13. Build log
@@ -297,4 +297,10 @@ Add a newest-first entry after each work session: what was built, files touched,
 - Built: repo scaffold (FastAPI skeleton, docker-compose, Alembic wiring, shared event schema, CI), pushed to GitHub; 17 tracking issues + branch protection on `main`; installed Docker Desktop + GitHub CLI locally and verified the full loop (`docker compose up -d` → `alembic upgrade head` → `pytest` → live `uvicorn` hitting `/health` and `/openapi.json`, plus MinIO health/console).
 - Files: repo root (`README.md`, `CONTRIBUTING.md`, `TASKS.md`, `.github/`), `backend/app/{main,config,db}.py`, `backend/app/models/base.py`, `backend/app/schemas/events.py`, `backend/app/api/health.py`, `backend/alembic/`, `docker-compose.yml`.
 - Next: Track A/B/C pick up their first issues (see `TASKS.md` / GitHub issues #1–#17).
+
+### 2026-09-24 (later)
+- Built: Track B complete for this pass — `signal_events` table, idempotent `POST /events/batch`, `skill_scores`/`plans`/`plan_modules` tables, the `stars_not_clouds` scoring extractor (impulse_control + sustained_attention, server-derived correctness, confidence scales with trial count), plan engine v0 (`rules.py`/`engine.py` matching PROJECT.md §6's example exactly), and `GET /children/{id}/profile` + `GET`/`PUT /children/{id}/plan`. Migrations verified upgrade/downgrade/upgrade against real Postgres at each step; 22 tests pass on `main`.
+- Files: `backend/app/models/{events,scoring}.py`, `backend/app/api/{events,profile,plans}.py`, `backend/app/schemas/{profile,plans}.py`, `backend/app/scoring/stars_not_clouds.py`, `backend/app/plan_engine/{rules,engine}.py`, two new Alembic migrations, `backend/tests/` (11 new test files/fixtures).
+- Next: Track A (identity/onboarding) and Track C (sessions/week-1/safety) are the remaining unclosed issues (#1–4, #11–16). Real gap to ticket: nothing yet wires "events land → scores recompute → engine generates a new plan" together — right now scoring and plan creation both exist as standalone pieces (extractor is a pure function nothing calls yet; `PUT /plan` only supports therapist override, not engine-generated plans). Needs an owner and an issue before Track B is *actually* done end to end, not just its listed checklist.
+- Notes/gotchas: two migration/PR-process incidents this session, both recovered cleanly — (1) a PR accidentally merged into its stacked-parent branch instead of `main` (harmless, just meant one PR carried two issues' worth of changes); (2) real near-miss on two people generating an Alembic migration with `down_revision = None` at the same time (caught before it hit CI) — reinforces: always rebase onto latest `main` before `alembic revision --autogenerate`.
 - Notes/gotchas: `minio/minio` was pulled entirely off Docker Hub — `docker-compose.yml` now points at `quay.io/minio/minio` instead. On a fresh Windows machine, Docker Desktop's "virtualization support not detected" error was fixed by `wsl --install --no-distribution` (elevated) + reboot, not a BIOS change.
