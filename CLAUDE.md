@@ -293,6 +293,12 @@ Add a newest-first entry after each work session: what was built, files touched,
 - Notes/gotchas:
 ```
 
+### 2026-09-24 (Track C, #11)
+- Built: `sessions`, `activity_runs`, `week1_progress` tables + migration `0d07cdd64f6b` (revises `c1236465921b`). `activity_runs.status` is DB-constrained to started/completed/skipped/quit (rule #5, no fail state). `day_index` is constrained to 1–7. `week1_progress` has one row per completed day (PK child_id + day_index), so missed calendar days add nothing (FR-7). Verified upgrade → downgrade → upgrade, and a from-scratch `upgrade head` on an empty DB; 30 tests pass.
+- Files: `backend/app/models/sessions.py`, `backend/app/models/__init__.py`, `backend/alembic/versions/0d07cdd64f6b_create_session_tables.py`, `backend/tests/test_sessions_model.py`.
+- Next: #12 sessions + activity-runs API, #13 week-1 schedule + gate.
+- Notes/gotchas: the ORM class is `ChildSession` (table `sessions`) so it never shadows `sqlalchemy.orm.Session` in routers. `child_id` is an indexed UUID with **no FK** yet, the same as `signal_events`/`skill_scores`, because Track A's `children` table isn't on `main`; add the FK in a follow-up migration once it lands.
+
 ### 2026-09-24
 - Built: repo scaffold (FastAPI skeleton, docker-compose, Alembic wiring, shared event schema, CI), pushed to GitHub; 17 tracking issues + branch protection on `main`; installed Docker Desktop + GitHub CLI locally and verified the full loop (`docker compose up -d` → `alembic upgrade head` → `pytest` → live `uvicorn` hitting `/health` and `/openapi.json`, plus MinIO health/console).
 - Files: repo root (`README.md`, `CONTRIBUTING.md`, `TASKS.md`, `.github/`), `backend/app/{main,config,db}.py`, `backend/app/models/base.py`, `backend/app/schemas/events.py`, `backend/app/api/health.py`, `backend/alembic/`, `docker-compose.yml`.

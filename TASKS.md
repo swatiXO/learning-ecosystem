@@ -25,7 +25,7 @@ Tracks and ownership are defined in `CONTRIBUTING.md`. This is the concrete firs
 
 ## Track C — Sessions, Week-1 & Safety (@kazimmehdi7)
 
-1. [ ] `backend/app/models/sessions.py`: `sessions`, `activity_runs`, `week1_progress` tables
+1. [x] `backend/app/models/sessions.py`: `sessions`, `activity_runs`, `week1_progress` tables
 2. [ ] `backend/app/api/sessions.py`, `activity_runs.py`: start/end session, start/complete/skip/quit activity-run
 3. [ ] `backend/app/week1/`: the 7-day schedule (PRD §6.2) + gate logic (rule #4: nothing unlocks before day 7)
 4. [ ] `backend/app/api/today.py`: `GET /children/{id}/today`
