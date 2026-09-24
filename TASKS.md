@@ -4,7 +4,7 @@ Tracks and ownership are defined in `CONTRIBUTING.md`. This is the concrete firs
 
 **Day 0 shared foundation: done.** FastAPI skeleton, `docker-compose.yml`, Alembic wiring, shared event schema (`backend/app/schemas/events.py`), CI — all on `main`.
 
-## Track A — Identity & Onboarding
+## Track A — Identity & Onboarding (@zurraizai)
 
 1. [ ] `backend/app/models/identity.py`: `guardians`, `children`, `schools`, `consents` tables (columns in `PROJECT.md` §6)
 2. [ ] Import those models in `backend/app/models/__init__.py`, generate first Alembic migration
@@ -13,7 +13,7 @@ Tracks and ownership are defined in `CONTRIBUTING.md`. This is the concrete firs
 5. [ ] `backend/app/api/children.py`: `PATCH /children/{id}`, `POST /children/{id}/consent`
 6. [ ] Test proving onboarding never writes a `skill_scores` row (rule #10)
 
-## Track B — Signals, Scoring & Plan Engine
+## Track B — Signals, Scoring & Plan Engine (@swatiXO)
 
 1. [ ] `backend/app/models/events.py`: `signal_events` table (PK = `event_id`)
 2. [ ] `backend/app/api/events.py`: `POST /events/batch`, de-duplicating on `event_id`; wire into `main.py`
@@ -23,7 +23,7 @@ Tracks and ownership are defined in `CONTRIBUTING.md`. This is the concrete firs
 6. [ ] Fake-child fixtures + tests for the extractor and each rule (`backend/tests/fixtures/`)
 7. [ ] `backend/app/api/profile.py`, `plans.py`: `GET /children/{id}/profile`, `GET`/`PUT /children/{id}/plan`
 
-## Track C — Sessions, Week-1 & Safety
+## Track C — Sessions, Week-1 & Safety (@kazimmehdi7)
 
 1. [ ] `backend/app/models/sessions.py`: `sessions`, `activity_runs`, `week1_progress` tables
 2. [ ] `backend/app/api/sessions.py`, `activity_runs.py`: start/end session, start/complete/skip/quit activity-run

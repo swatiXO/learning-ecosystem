@@ -1,17 +1,14 @@
-# Fill in real GitHub usernames, then uncomment. Until then this is just a map of
-# which track owns which folder (see CONTRIBUTING.md).
-
 # Track A — Identity & Onboarding
-# /backend/app/onboarding/  @dev-a
-# /backend/app/api/onboarding.py  @dev-a
-# /backend/app/models/identity.py  @dev-a
+/backend/app/onboarding/  @zurraizai
+/backend/app/api/onboarding.py  @zurraizai
+/backend/app/models/identity.py  @zurraizai
 
 # Track B — Signals, Scoring & Plan Engine
-# /backend/app/scoring/  @dev-b
-# /backend/app/plan_engine/  @dev-b
-# /backend/app/schemas/events.py  @dev-b @dev-a @dev-c
+/backend/app/scoring/  @swatiXO
+/backend/app/plan_engine/  @swatiXO
+/backend/app/schemas/events.py  @swatiXO @zurraizai @kazimmehdi7
 
 # Track C — Sessions, Week-1 & Safety
-# /backend/app/week1/  @dev-c
-# /backend/app/safety/  @dev-c
-# /backend/app/models/sessions.py  @dev-c
+/backend/app/week1/  @kazimmehdi7
+/backend/app/safety/  @kazimmehdi7
+/backend/app/models/sessions.py  @kazimmehdi7

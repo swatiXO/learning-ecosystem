@@ -4,11 +4,11 @@ Three backend devs working in parallel on one repo. This is the workflow so that
 
 ## The three tracks
 
-| Track | Owns | Key folders |
-|---|---|---|
-| **A — Identity & Onboarding** | guardians/children/schools/consents, onboarding flow, age-band logic | `backend/app/onboarding/`, `backend/app/models/identity.py`, onboarding routes in `backend/app/api/` |
-| **B — Signals, Scoring & Plan Engine** | event ingest, scoring extractors, plan engine, profile/plan endpoints | `backend/app/scoring/`, `backend/app/plan_engine/`, `backend/app/schemas/events.py` |
-| **C — Sessions, Week-1 & Safety** | sessions/activity-runs, week-1 schedule + gate, safety flags, media upload | `backend/app/week1/`, `backend/app/safety/`, session/activity-run models and routes |
+| Track | Owner | Owns | Key folders |
+|---|---|---|---|
+| **A — Identity & Onboarding** | [@zurraizai](https://github.com/zurraizai) | guardians/children/schools/consents, onboarding flow, age-band logic | `backend/app/onboarding/`, `backend/app/models/identity.py`, onboarding routes in `backend/app/api/` |
+| **B — Signals, Scoring & Plan Engine** | [@swatiXO](https://github.com/swatiXO) | event ingest, scoring extractors, plan engine, profile/plan endpoints | `backend/app/scoring/`, `backend/app/plan_engine/`, `backend/app/schemas/events.py` |
+| **C — Sessions, Week-1 & Safety** | [@kazimmehdi7](https://github.com/kazimmehdi7) | sessions/activity-runs, week-1 schedule + gate, safety flags, media upload | `backend/app/week1/`, `backend/app/safety/`, session/activity-run models and routes |
 
 Full task breakdown per track is in the repo's project board / issues (label `track-a`, `track-b`, `track-c`).
 
@@ -50,4 +50,4 @@ See `PROJECT.md` §8 and the README quickstart. Everyone needs Docker running lo
 
 ## CI
 
-Every PR touching `backend/` runs ruff, black --check, an `alembic upgrade head` against a fresh Postgres, and pytest (`.github/workflows/ci.yml`). Green CI is required before merge.
+Every PR runs ruff, black --check, an `alembic upgrade head` against a fresh Postgres, and pytest (`.github/workflows/ci.yml`). Green CI is required before merge.
