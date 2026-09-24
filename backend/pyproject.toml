@@ -33,6 +33,10 @@ include = ["app*"]
 line-length = 100
 target-version = "py312"
 
+[tool.ruff.lint]
+# B008: FastAPI's `Depends(...)` as a default argument is the intended pattern, not a bug.
+ignore = ["B008"]
+
 [tool.black]
 line-length = 100
 target-version = ["py312"]
