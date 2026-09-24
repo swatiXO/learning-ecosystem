@@ -6,6 +6,10 @@ Working on this with 3 backend devs in parallel? Read [`CONTRIBUTING.md`](CONTRI
 
 ## Quickstart
 
+**Prerequisites:** Docker (Desktop on Windows/Mac, Engine on Linux) and Python 3.12.
+
+> **Windows:** if Docker Desktop shows "virtualization support not detected" on first launch, it almost always means WSL2 isn't enabled yet (not a BIOS issue). Fix: open PowerShell **as Administrator** and run `wsl --install --no-distribution`, then restart your machine. If it still fails after that, check Task Manager → Performance → CPU for "Virtualization: Enabled" — if it says Disabled, you'll need to enable Intel VT-x/AMD-V in your BIOS/UEFI setup.
+
 ```bash
 cp .env.example .env
 docker compose up -d            # postgres + minio
