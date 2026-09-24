@@ -46,7 +46,7 @@ These files are read by all three tracks. Changing their shape needs a heads-up 
 
 ## Local setup
 
-See `PROJECT.md` §8.
+See `PROJECT.md` §8 and the README quickstart. Everyone needs Docker running locally (it's how you get Postgres + MinIO) — see the README's Windows note if Docker Desktop complains about virtualization on first launch.
 
 ## CI
 

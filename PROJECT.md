@@ -271,8 +271,8 @@ Record every decision here with its date and reason.
 
 **Phase:** 0 (research) + 1 (backend foundation), in parallel
 **Next up:**
-1. [ ] Scaffold repo + docker-compose (Postgres, MinIO)
-2. [ ] FastAPI skeleton + config + health check
+1. [x] Scaffold repo + docker-compose (Postgres, MinIO)
+2. [x] FastAPI skeleton + config + health check
 3. [ ] Event schema (Pydantic) + `signal_events` table + `POST /events/batch` (idempotent)
 4. [ ] Core tables (guardians, children with onboarding fields, schools, consents) + Alembic migration
 5. [ ] `POST /onboarding` + `GET /onboarding/options` + age-band helper (test that onboarding sets no scores)
@@ -293,4 +293,8 @@ Add a newest-first entry after each work session: what was built, files touched,
 - Notes/gotchas:
 ```
 
-_(no entries yet)_
+### 2026-09-24
+- Built: repo scaffold (FastAPI skeleton, docker-compose, Alembic wiring, shared event schema, CI), pushed to GitHub; 17 tracking issues + branch protection on `main`; installed Docker Desktop + GitHub CLI locally and verified the full loop (`docker compose up -d` → `alembic upgrade head` → `pytest` → live `uvicorn` hitting `/health` and `/openapi.json`, plus MinIO health/console).
+- Files: repo root (`README.md`, `CONTRIBUTING.md`, `TASKS.md`, `.github/`), `backend/app/{main,config,db}.py`, `backend/app/models/base.py`, `backend/app/schemas/events.py`, `backend/app/api/health.py`, `backend/alembic/`, `docker-compose.yml`.
+- Next: Track A/B/C pick up their first issues (see `TASKS.md` / GitHub issues #1–#17).
+- Notes/gotchas: `minio/minio` was pulled entirely off Docker Hub — `docker-compose.yml` now points at `quay.io/minio/minio` instead. On a fresh Windows machine, Docker Desktop's "virtualization support not detected" error was fixed by `wsl --install --no-distribution` (elevated) + reboot, not a BIOS change.
