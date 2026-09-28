@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Learning Ecosystem — Backend Test Harness</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; line-height: 1.4; }
+  h1 { font-size: 1.3rem; }
+  h2 { font-size: 1.05rem; margin-top: 2rem; border-bottom: 1px solid #8888; padding-bottom: .25rem; }
+  .warning { background: #ffcc0033; border: 1px solid #cc9900; padding: .5rem .75rem; border-radius: 6px; font-size: .9rem; }
+  fieldset { border: 1px solid #8886; border-radius: 8px; margin-bottom: .75rem; }
+  label { display: block; margin: .4rem 0 .1rem; font-size: .85rem; opacity: .8; }
+  input, select { width: 100%; box-sizing: border-box; padding: .35rem; }
+  .row { display: flex; gap: .5rem; }
+  .row > * { flex: 1; }
+  [hidden] { display: none !important; }
+  button { cursor: pointer; padding: .4rem .8rem; border-radius: 6px; border: 1px solid #8888; background: #6663; }
+  button:hover { background: #6666; }
+  .activity-row { display: flex; align-items: center; gap: .5rem; padding: .4rem 0; border-bottom: 1px solid #8883; }
+  .activity-row .name { flex: 1; font-weight: 600; }
+  .badge { font-size: .75rem; padding: .1rem .4rem; border-radius: 4px; background: #4488; }
+  #game-modal { position: fixed; inset: 0; background: #000a; display: flex; align-items: center; justify-content: center; }
+  #game-modal .card { background: canvas; color: canvastext; padding: 1.5rem; border-radius: 10px; min-width: 320px; max-width: 480px; }
+  .stage { position: relative; height: 160px; background: #4488; border-radius: 8px; overflow: hidden; margin: .75rem 0; }
+  .stimulus { position: absolute; font-size: 2.5rem; cursor: pointer; user-select: none; }
+  #log { background: #0002; padding: .5rem; height: 200px; overflow-y: auto; font-size: .75rem; white-space: pre-wrap; }
+  table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  td, th { border-bottom: 1px solid #8883; padding: .3rem; text-align: left; }
+  .pill { display: inline-block; padding: .1rem .5rem; border-radius: 999px; background: #6663; font-size: .8rem; }
+</style>
+</head>
+<body>
+
+<h1>Learning Ecosystem — Backend Test Harness</h1>
+<p class="warning">Not the real app — a barebones tool to click through the actual API end to end. See <code>demo/README.md</code>.</p>
+
+<section id="onboarding-section">
+  <h2>1. Onboard a child</h2>
+  <form id="onboarding-form">
+    <div class="row">
+      <div><label>Guardian name</label><input name="guardian_name" value="Test Guardian" required /></div>
+      <div><label>Relationship</label><select name="guardian_relationship"></select></div>
+    </div>
+    <div class="row">
+      <div><label>Guardian phone</label><input name="guardian_phone" value="03001234567" required /></div>
+      <div><label>Locale</label><input name="locale" value="en" /></div>
+    </div>
+    <div class="row">
+      <div><label>Child name</label><input name="child_name" value="Test Child" required /></div>
+      <div><label>Date of birth</label><input name="date_of_birth" type="date" value="2018-06-15" required /></div>
+    </div>
+    <div class="row">
+      <div><label>Area</label><select name="area"></select></div>
+      <div><label>Schooling</label>
+        <select name="schooling">
+          <option value="home_school">home_school</option>
+          <option value="school">school</option>
+        </select>
+      </div>
+    </div>
+    <div class="row" id="school-fields" hidden>
+      <div><label>School name</label><input name="school_name" /></div>
+      <div><label>Grade</label><select name="grade"></select></div>
+    </div>
+    <div class="row">
+      <div><label>Home languages (ctrl/cmd-click for multiple)</label><select name="home_languages" multiple size="4"></select></div>
+      <div>
+        <label>Gender (optional)</label><select name="gender"><option value="">—</option></select>
+        <label>Avatar (optional)</label><select name="avatar"><option value="">—</option></select>
+      </div>
+    </div>
+    <fieldset>
+      <legend>Consent</legend>
+      <label><input type="checkbox" name="terms" checked /> Terms accepted</label>
+      <label><input type="checkbox" name="audio" checked /> Audio consent</label>
+      <label><input type="checkbox" name="video" /> Video consent</label>
+      <label><input type="checkbox" name="teacher_share" /> Teacher share</label>
+    </fieldset>
+    <button type="submit">Onboard</button>
+  </form>
+</section>
+
+<section id="main-section" hidden>
+  <p><span class="pill" id="child-info"></span></p>
+
+  <h2>2. Today</h2>
+  <div id="today-content">Loading…</div>
+
+  <h2>3. Profile (skill scores)</h2>
+  <button id="refresh-profile">Refresh profile</button>
+  <div id="profile-content"></div>
+
+  <h2>4. Plan</h2>
+  <button id="refresh-plan">Refresh plan</button>
+  <div id="plan-content"></div>
+</section>
+
+<div id="game-modal" hidden>
+  <div class="card" id="game-content"></div>
+</div>
+
+<h2>API log</h2>
+<pre id="log"></pre>
+
+<script src="app.js"></script>
+</body>
+</html>

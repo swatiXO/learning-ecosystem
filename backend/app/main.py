@@ -1,7 +1,9 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from app.api import (
     activity_runs,
@@ -38,3 +40,9 @@ app.include_router(sessions.router)
 app.include_router(activity_runs.router)
 app.include_router(today.router)
 app.include_router(media.router)
+
+# Demo test harness (demo/frontend-test-harness branch only — never merges to main).
+# Same-origin static files so the page's fetch() calls need no CORS setup.
+_demo_dir = Path(__file__).resolve().parents[2] / "demo"
+if _demo_dir.exists():
+    app.mount("/demo", StaticFiles(directory=_demo_dir, html=True), name="demo")
