@@ -6,12 +6,12 @@ Tracks and ownership are defined in `CONTRIBUTING.md`. This is the concrete firs
 
 ## Track A — Identity & Onboarding (@zurraizai)
 
-1. [ ] `backend/app/models/identity.py`: `guardians`, `children`, `schools`, `consents` tables (columns in `PROJECT.md` §6)
-2. [ ] Import those models in `backend/app/models/__init__.py`, generate first Alembic migration
-3. [ ] `backend/app/onboarding/`: field validation + age-band-from-DOB helper
-4. [ ] `backend/app/api/onboarding.py`: `POST /onboarding`, `GET /onboarding/options`; wire into `main.py`
-5. [ ] `backend/app/api/children.py`: `PATCH /children/{id}`, `POST /children/{id}/consent`
-6. [ ] Test proving onboarding never writes a `skill_scores` row (rule #10)
+1. [x] `backend/app/models/identity.py`: `guardians`, `children`, `schools`, `consents` tables (columns in `PROJECT.md` §6)
+2. [x] Import those models in `backend/app/models/__init__.py`, generate first Alembic migration
+3. [x] `backend/app/onboarding/`: field validation + age-band-from-DOB helper
+4. [x] `backend/app/api/onboarding.py`: `POST /onboarding`, `GET /onboarding/options`; wire into `main.py`
+5. [x] `backend/app/api/children.py`: `PATCH /children/{id}`, `POST /children/{id}/consent`
+6. [x] Test proving onboarding never writes a `skill_scores` row (rule #10)
 
 ## Track B — Signals, Scoring & Plan Engine (@swatiXO)
 
