@@ -14,15 +14,18 @@ def score_stars_not_clouds(
     events: list[SignalEvent], child_id: uuid.UUID, is_baseline: bool = False
 ) -> list[SkillScore]:
     taps = [e for e in events if e.activity == ACTIVITY and e.event_type == "tap"]
-    if not taps:
-        return []
 
     # Correctness is derived from `target`, not trusted from the client's own `correct`
     # field — scoring must be server-authoritative (PROJECT.md rule #7: explainable/traceable).
     false_alarms = [e for e in taps if e.payload.get("target") == "cloud"]
     go_taps = [e for e in taps if e.payload.get("target") == "star"]
+    # A tap with a missing/garbled target is neither — exclude it from the denominator too,
+    # rather than let it silently deflate the false-alarm rate and inflate the score.
+    valid_taps = false_alarms + go_taps
+    if not valid_taps:
+        return []
 
-    scores = [_impulse_control_score(child_id, taps, false_alarms, is_baseline)]
+    scores = [_impulse_control_score(child_id, valid_taps, false_alarms, is_baseline)]
 
     reaction_times = [
         e.payload["reaction_ms"] for e in go_taps if e.payload.get("reaction_ms") is not None

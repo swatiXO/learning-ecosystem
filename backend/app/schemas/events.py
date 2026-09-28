@@ -18,6 +18,34 @@ EventType = Literal[
     "complete",
 ]
 
+# Every activity key documented in docs/activity-signal-map.md. This is broader than
+# scoring's extractor registry (app/scoring/service.py) on purpose — an activity can be
+# logged as soon as it's documented, before a scoring extractor for it exists.
+REGISTERED_ACTIVITIES = frozenset(
+    {
+        "stars_not_clouds",
+        "watch_the_pond",
+        "wait_for_the_bell",
+        "distraction_garden",
+        "follow_instructions",
+        "copy_the_pattern",
+        "story_and_questions",
+        "read_and_answer",
+        "speak_this_line",
+        "name_the_picture",
+        "which_word",
+        "retell_the_story",
+        "chat_with_a_character",
+        "how_does_she_feel",
+        "what_would_you_do",
+        "about_me",
+        "oops_try_again",
+        "level_choice",
+        "mood_check_in",
+        "sensory_setup",
+    }
+)
+
 
 class EventIn(BaseModel):
     """Event schema v0 — see PROJECT.md §6. This is the shared contract; changing
@@ -41,3 +69,4 @@ class EventBatchIn(BaseModel):
 class EventBatchResult(BaseModel):
     accepted: int
     duplicates: int
+    rejected: int = 0

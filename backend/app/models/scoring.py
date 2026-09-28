@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, Integer, String, func, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -25,6 +25,17 @@ class SkillScore(Base):
 
 class Plan(Base):
     __tablename__ = "plans"
+    __table_args__ = (
+        # At most one active plan per child — the DB is the actual guard against two
+        # concurrent requests (a race between an override and an engine recompute, or a
+        # retried request) both inserting an "active" plan at once.
+        Index(
+            "ix_plans_one_active_per_child",
+            "child_id",
+            unique=True,
+            postgresql_where=text("status = 'active'"),
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     child_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
