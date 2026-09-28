@@ -8,7 +8,10 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.models import ActivityRun, ChildSession
+from app.models.sessions import WEEK1_DAYS
+from app.plan_engine.service import regenerate_plan
 from app.schemas.activity_runs import ActivityRunCreateIn, ActivityRunOut, ActivityRunUpdateIn
+from app.scoring.service import recompute_scores
 from app.week1.gate import try_complete_day
 
 router = APIRouter(tags=["activity-runs"])
@@ -40,8 +43,19 @@ def _advance_week1_gate(db: Session, run: ActivityRun) -> None:
     if run.day_index is None:
         return
     session = db.get(ChildSession, run.session_id)
-    if session is not None:
-        try_complete_day(db, session.child_id, run.day_index)
+    if session is None:
+        return
+
+    day_completed = try_complete_day(db, session.child_id, run.day_index)
+    if day_completed and run.day_index == WEEK1_DAYS:
+        # Week 1 just finished: establish the child's baseline scores and first
+        # engine-generated plan (issue #39). This closes the gap GET /today's 404
+        # branch used to flag — previously nothing ever called these. Periodic
+        # re-evaluation every 6-8 weeks (PROJECT.md §1) is separate, still-unbuilt
+        # work — that needs a scheduler, not an activity-run hook.
+        recompute_scores(db, session.child_id, is_baseline=True)
+        regenerate_plan(db, session.child_id)
+        db.commit()
 
 
 @router.patch("/activity-runs/{run_id}", response_model=ActivityRunOut)

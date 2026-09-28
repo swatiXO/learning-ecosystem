@@ -2,12 +2,9 @@ import statistics
 import uuid
 
 from app.models import SignalEvent, SkillScore
+from app.scoring.common import confidence_from_trials
 
 ACTIVITY = "stars_not_clouds"
-
-# How many trials before confidence reaches 1.0. Placeholder pending Phase 0 pilot data,
-# same as the plan engine thresholds in PROJECT.md §6.
-MIN_TRIALS_FOR_FULL_CONFIDENCE = 20
 
 
 def score_stars_not_clouds(
@@ -47,7 +44,7 @@ def _impulse_control_score(
         child_id=child_id,
         dimension="impulse_control",
         score=round(100.0 * (1 - false_alarm_rate), 1),
-        confidence=round(min(1.0, len(taps) / MIN_TRIALS_FOR_FULL_CONFIDENCE), 2),
+        confidence=confidence_from_trials(len(taps)),
         is_baseline=is_baseline,
         evidence={
             "event_ids": [str(e.event_id) for e in taps],
@@ -70,7 +67,7 @@ def _sustained_attention_score(
         child_id=child_id,
         dimension="sustained_attention",
         score=round(score, 1),
-        confidence=round(min(1.0, len(reaction_times) / MIN_TRIALS_FOR_FULL_CONFIDENCE), 2),
+        confidence=confidence_from_trials(len(reaction_times)),
         is_baseline=is_baseline,
         evidence={
             "event_ids": [str(e.event_id) for e in go_taps],

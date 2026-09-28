@@ -83,8 +83,13 @@ def regenerate_plan(db: Session, child_id: uuid.UUID) -> Plan:
     )
 
 
+def modules_for_plan(db: Session, plan: Plan) -> dict[str, float]:
+    rows = db.scalars(select(PlanModule).where(PlanModule.plan_id == plan.id)).all()
+    return {row.module: row.weight for row in rows}
+
+
 def serialize_plan(db: Session, plan: Plan) -> PlanOut:
-    modules = db.scalars(select(PlanModule).where(PlanModule.plan_id == plan.id)).all()
+    modules = modules_for_plan(db, plan)
     return PlanOut(
         id=plan.id,
         child_id=plan.child_id,
@@ -93,5 +98,5 @@ def serialize_plan(db: Session, plan: Plan) -> PlanOut:
         rationale=plan.rationale,
         created_by=plan.created_by,
         created_at=plan.created_at,
-        modules=[PlanModuleOut(module=m.module, weight=m.weight) for m in modules],
+        modules=[PlanModuleOut(module=m, weight=w) for m, w in modules.items()],
     )

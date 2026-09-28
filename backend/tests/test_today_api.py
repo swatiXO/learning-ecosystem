@@ -4,7 +4,8 @@ from fastapi.testclient import TestClient
 
 from app.db import SessionLocal
 from app.main import app
-from app.models import Plan, Week1Progress
+from app.models import Plan, PlanModule, Week1Progress
+from app.plan_engine.catalog import MODULE_ACTIVITIES
 from app.week1.schedule import activities_for_day
 
 client = TestClient(app)
@@ -84,5 +85,26 @@ def test_today_returns_plan_phase_once_week1_done_and_plan_exists() -> None:
         assert body["day_index"] is None
         assert body["activities"] == []
         assert body["plan_id"] == str(plan_id)
+    finally:
+        _cleanup(child_id)
+
+
+def test_today_plan_phase_returns_activities_for_the_plans_modules() -> None:
+    child_id = uuid.uuid4()
+    _mark_days_complete(child_id, range(1, 8))
+    db = SessionLocal()
+    try:
+        plan = Plan(child_id=child_id, version=1, status="active", created_by="engine")
+        db.add(plan)
+        db.flush()
+        db.add(PlanModule(plan_id=plan.id, module="focus_attention", weight=1.0))
+        db.commit()
+    finally:
+        db.close()
+
+    try:
+        response = client.get(f"/children/{child_id}/today")
+        assert response.status_code == 200
+        assert response.json()["activities"] == list(MODULE_ACTIVITIES["focus_attention"])
     finally:
         _cleanup(child_id)

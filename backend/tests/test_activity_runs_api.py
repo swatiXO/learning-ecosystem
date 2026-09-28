@@ -1,11 +1,14 @@
 import uuid
+from datetime import UTC, datetime
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import delete
 
 from app.db import SessionLocal
 from app.main import app
-from app.models import ChildSession, Week1Progress
+from app.models import ChildSession, Plan, PlanModule, SignalEvent, SkillScore, Week1Progress
+from app.models.sessions import WEEK1_DAYS
 from app.week1.gate import current_day_index
 from app.week1.schedule import activities_for_day
 
@@ -232,3 +235,83 @@ def current_day_index_for(child_id: uuid.UUID) -> int | None:
         return current_day_index(db, child_id)
     finally:
         db.close()
+
+
+def test_finishing_day_seven_triggers_scoring_and_a_generated_plan() -> None:
+    # Issue #39: nothing used to call recompute_scores/regenerate_plan when week 1
+    # finished. Drive a child through all 7 days for real, via the actual API, and
+    # confirm a plan now exists afterward instead of the 404 GET /today used to hit.
+    child_id = uuid.uuid4()
+    session_id = _create_session(child_id)
+    try:
+        for day in range(1, WEEK1_DAYS + 1):
+            for activity in activities_for_day(day):
+                created = client.post(
+                    "/activity-runs",
+                    json={
+                        "session_id": str(session_id),
+                        "activity": activity,
+                        "activity_version": "1.0.0",
+                        "day_index": day,
+                    },
+                )
+                run_id = created.json()["id"]
+
+                if activity == "stars_not_clouds":
+                    # The only registered extractor needs real events to score anything —
+                    # an activity-run alone carries no signal_events.
+                    client.post(
+                        "/events/batch",
+                        json={
+                            "events": [
+                                {
+                                    "event_id": str(uuid.uuid4()),
+                                    "child_id": str(child_id),
+                                    "session_id": str(session_id),
+                                    "activity_run_id": run_id,
+                                    "activity": "stars_not_clouds",
+                                    "activity_version": "1.0.0",
+                                    "event_type": "tap",
+                                    "ts_client": datetime.now(UTC).isoformat(),
+                                    "payload": {
+                                        "target": "star",
+                                        "correct": True,
+                                        "reaction_ms": 400,
+                                    },
+                                }
+                                for _ in range(5)
+                            ]
+                        },
+                    )
+
+                response = client.patch(f"/activity-runs/{run_id}", json={"status": "completed"})
+                assert response.status_code == 200
+
+        assert current_day_index_for(child_id) is None  # week 1 fully complete
+
+        plan_response = client.get(f"/children/{child_id}/plan")
+        assert plan_response.status_code == 200
+        assert plan_response.json()["created_by"] == "engine"
+
+        db = SessionLocal()
+        try:
+            scores = db.query(SkillScore).filter_by(child_id=child_id).all()
+            assert len(scores) > 0
+            assert all(s.is_baseline for s in scores)
+        finally:
+            db.close()
+    finally:
+        _delete_session(session_id)
+        db = SessionLocal()
+        try:
+            db.query(Week1Progress).filter_by(child_id=child_id).delete()
+            plan_ids = [p.id for p in db.query(Plan).filter_by(child_id=child_id).all()]
+            db.query(PlanModule).filter(PlanModule.plan_id.in_(plan_ids)).delete(
+                synchronize_session=False
+            )
+            db.query(Plan).filter_by(child_id=child_id).delete()
+            db.query(SkillScore).filter_by(child_id=child_id).delete()
+            db.execute(delete(SignalEvent).where(SignalEvent.child_id == child_id))
+            db.commit()
+        finally:
+            db.close()
