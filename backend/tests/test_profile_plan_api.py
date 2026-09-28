@@ -104,3 +104,17 @@ def test_plan_override_requires_at_least_one_module() -> None:
     child_id = uuid.uuid4()
     response = client.put(f"/children/{child_id}/plan", json={"modules": []})
     assert response.status_code == 422
+
+
+def test_plan_override_rejects_duplicate_module_names() -> None:
+    child_id = uuid.uuid4()
+    response = client.put(
+        f"/children/{child_id}/plan",
+        json={
+            "modules": [
+                {"module": "focus_attention", "weight": 0.6},
+                {"module": "focus_attention", "weight": 0.4},
+            ]
+        },
+    )
+    assert response.status_code == 422

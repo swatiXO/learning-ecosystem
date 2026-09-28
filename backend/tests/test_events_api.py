@@ -32,11 +32,11 @@ def test_events_batch_is_idempotent() -> None:
     try:
         first = client.post("/events/batch", json={"events": events})
         assert first.status_code == 200
-        assert first.json() == {"accepted": 2, "duplicates": 0}
+        assert first.json() == {"accepted": 2, "duplicates": 0, "rejected": 0}
 
         second = client.post("/events/batch", json={"events": events})
         assert second.status_code == 200
-        assert second.json() == {"accepted": 0, "duplicates": 2}
+        assert second.json() == {"accepted": 0, "duplicates": 2, "rejected": 0}
     finally:
         db = SessionLocal()
         try:
@@ -49,4 +49,32 @@ def test_events_batch_is_idempotent() -> None:
 def test_events_batch_empty() -> None:
     response = client.post("/events/batch", json={"events": []})
     assert response.status_code == 200
-    assert response.json() == {"accepted": 0, "duplicates": 0}
+    assert response.json() == {"accepted": 0, "duplicates": 0, "rejected": 0}
+
+
+def test_events_batch_rejects_unregistered_activity() -> None:
+    valid_id = uuid.uuid4()
+    bad_event = _make_event(uuid.uuid4())
+    bad_event["activity"] = "not_a_real_activity"
+    events = [_make_event(valid_id), bad_event]
+
+    try:
+        response = client.post("/events/batch", json={"events": events})
+        assert response.status_code == 200
+        assert response.json() == {"accepted": 1, "duplicates": 0, "rejected": 1}
+    finally:
+        db = SessionLocal()
+        try:
+            db.execute(delete(SignalEvent).where(SignalEvent.event_id == valid_id))
+            db.commit()
+        finally:
+            db.close()
+
+
+def test_events_batch_all_rejected_skips_insert() -> None:
+    bad_event = _make_event(uuid.uuid4())
+    bad_event["activity"] = "not_a_real_activity"
+
+    response = client.post("/events/batch", json={"events": [bad_event]})
+    assert response.status_code == 200
+    assert response.json() == {"accepted": 0, "duplicates": 0, "rejected": 1}
