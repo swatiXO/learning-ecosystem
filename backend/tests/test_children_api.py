@@ -48,6 +48,13 @@ def _cleanup(child_ids=(), guardian_ids=(), school_ids=()) -> None:
         db.close()
 
 
+def _assert_pydantic_shaped_422(body: dict) -> None:
+    assert isinstance(body["detail"], list)
+    assert body["detail"], "expected at least one error"
+    for error in body["detail"]:
+        assert {"type", "loc", "msg", "input"} <= error.keys()
+
+
 def test_patch_child_updates_a_field() -> None:
     onboarded = _onboard()
     try:
@@ -94,6 +101,7 @@ def test_patch_child_switch_to_school_without_id_or_name_is_422() -> None:
     try:
         response = client.patch(f"/children/{onboarded['child_id']}", json={"schooling": "school"})
         assert response.status_code == 422
+        _assert_pydantic_shaped_422(response.json())
     finally:
         _cleanup(child_ids=[onboarded["child_id"]], guardian_ids=[onboarded["guardian_id"]])
 
@@ -105,6 +113,71 @@ def test_patch_child_empty_home_languages_is_422() -> None:
         assert response.status_code == 422
     finally:
         _cleanup(child_ids=[onboarded["child_id"]], guardian_ids=[onboarded["guardian_id"]])
+
+
+def test_patch_child_null_required_field_is_422() -> None:
+    onboarded = _onboard()
+    try:
+        response = client.patch(f"/children/{onboarded['child_id']}", json={"name": None})
+        assert response.status_code == 422
+        _assert_pydantic_shaped_422(response.json())
+    finally:
+        _cleanup(child_ids=[onboarded["child_id"]], guardian_ids=[onboarded["guardian_id"]])
+
+
+def test_patch_child_null_date_of_birth_is_422() -> None:
+    onboarded = _onboard()
+    try:
+        response = client.patch(f"/children/{onboarded['child_id']}", json={"date_of_birth": None})
+        assert response.status_code == 422
+    finally:
+        _cleanup(child_ids=[onboarded["child_id"]], guardian_ids=[onboarded["guardian_id"]])
+
+
+def test_patch_child_nullable_fields_accept_null() -> None:
+    onboarded = _onboard(gender="male", grade=None, avatar="fox")
+    try:
+        response = client.patch(
+            f"/children/{onboarded['child_id']}",
+            json={"gender": None, "avatar": None},
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["gender"] is None
+        assert body["avatar"] is None
+    finally:
+        _cleanup(child_ids=[onboarded["child_id"]], guardian_ids=[onboarded["guardian_id"]])
+
+
+def test_patch_child_switch_to_home_school_clears_school_id() -> None:
+    school_name = f"To Be Left School {uuid.uuid4().hex[:8]}"
+    onboarded = _onboard(schooling="school", school_name=school_name)
+    school_id = None
+    try:
+        db = SessionLocal()
+        child = db.get(Child, uuid.UUID(onboarded["child_id"]))
+        school_id = child.school_id
+        assert school_id is not None
+        db.close()
+
+        response = client.patch(
+            f"/children/{onboarded['child_id']}", json={"schooling": "home_school"}
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["schooling"] == "home_school"
+        assert body["school_id"] is None
+
+        db = SessionLocal()
+        refreshed = db.get(Child, uuid.UUID(onboarded["child_id"]))
+        assert refreshed.school_id is None
+        db.close()
+    finally:
+        _cleanup(
+            child_ids=[onboarded["child_id"]],
+            guardian_ids=[onboarded["guardian_id"]],
+            school_ids=[str(school_id)] if school_id else [],
+        )
 
 
 def test_patch_unknown_child_is_404() -> None:

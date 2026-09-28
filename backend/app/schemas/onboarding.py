@@ -6,6 +6,7 @@ from pydantic import BaseModel, field_validator, model_validator
 
 from app.onboarding import options
 from app.onboarding.validation import (
+    normalize_phone,
     validate_consent_terms,
     validate_date_of_birth,
     validate_home_languages,
@@ -45,6 +46,11 @@ class OnboardingIn(BaseModel):
     avatar: str | None = None
 
     consent: ConsentIn
+
+    @field_validator("guardian_phone")
+    @classmethod
+    def phone_is_valid(cls, value: str) -> str:
+        return normalize_phone(value)
 
     @field_validator("guardian_relationship")
     @classmethod

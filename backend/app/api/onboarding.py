@@ -8,7 +8,6 @@ from app.db import get_db
 from app.models import Child, Consent, Guardian, School
 from app.onboarding import options
 from app.onboarding.age import age_band
-from app.onboarding.validation import normalize_phone
 from app.schemas.onboarding import OnboardingIn, OnboardingOut, OptionsOut, SchoolOut
 
 router = APIRouter(tags=["onboarding"])
@@ -38,7 +37,8 @@ def get_options(q: str | None = None, db: Session = Depends(get_db)) -> OptionsO
 def onboard(payload: OnboardingIn, db: Session = Depends(get_db)) -> OnboardingOut:
     # Guardian + child + consent in one transaction: all or nothing.
     try:
-        phone = normalize_phone(payload.guardian_phone)
+        # OnboardingIn.phone_is_valid already normalised guardian_phone.
+        phone = payload.guardian_phone
 
         # A second sibling onboards with the same phone and reuses the guardian row
         # instead of failing on the phone-unique constraint. Existing name/relationship

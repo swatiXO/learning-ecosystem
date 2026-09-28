@@ -19,6 +19,22 @@ def test_normalize_phone_variants_match(raw: str) -> None:
     assert normalize_phone(raw) == "+923001234567"
 
 
+def test_normalize_phone_too_short_rejected() -> None:
+    with pytest.raises(ValueError):
+        normalize_phone("+92300123")
+
+
+def test_normalize_phone_too_long_rejected() -> None:
+    with pytest.raises(ValueError):
+        normalize_phone("+9230012345678")
+
+
+def test_normalize_phone_landline_rejected() -> None:
+    # Karachi landline: starts with 021, not a mobile prefix (3...).
+    with pytest.raises(ValueError):
+        normalize_phone("021-32621234")
+
+
 def test_validate_date_of_birth_future_rejected() -> None:
     today = date(2026, 1, 1)
     with pytest.raises(ValueError):

@@ -127,6 +127,17 @@ def test_onboarding_invalid_relationship_is_422() -> None:
     phone = _unique_phone()
     response = client.post("/onboarding", json=_payload(phone, guardian_relationship="uncle"))
     assert response.status_code == 422
+    body = response.json()
+    assert isinstance(body["detail"], list)
+    assert body["detail"]
+    for error in body["detail"]:
+        assert {"type", "loc", "msg", "input"} <= error.keys()
+
+
+def test_onboarding_invalid_phone_is_422() -> None:
+    # Karachi landline, not a mobile number.
+    response = client.post("/onboarding", json=_payload("021-32621234"))
+    assert response.status_code == 422
 
 
 def test_onboarding_invalid_area_is_422() -> None:

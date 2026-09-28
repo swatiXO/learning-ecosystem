@@ -2,6 +2,7 @@
 called from Pydantic validators in app/schemas/onboarding.py and app/schemas/children.py,
 and unit-tested directly."""
 
+import re
 from datetime import date
 from uuid import UUID
 
@@ -10,10 +11,15 @@ from app.onboarding.age import age_in_years
 MIN_PLAUSIBLE_AGE = 3
 MAX_PLAUSIBLE_AGE = 18
 
+# +92 followed by a 10-digit Pakistani mobile number (starts with 3). Excludes
+# landlines, which don't start with 3.
+PAKISTANI_MOBILE_PATTERN = re.compile(r"^\+923\d{9}$")
+
 
 def normalize_phone(raw: str) -> str:
-    """Collapse Pakistani phone formats to one E.164-ish form, so "0300-1234567",
-    "03001234567" and "+923001234567" all become the same guardian lookup key."""
+    """Collapse Pakistani mobile phone formats to one E.164-ish form, so
+    "0300-1234567", "03001234567" and "+923001234567" all become the same guardian
+    lookup key. Raises ValueError if the result isn't a Pakistani mobile number."""
     digits = "".join(ch for ch in raw if ch.isdigit())
     if digits.startswith("92"):
         national = digits[2:]
@@ -21,7 +27,10 @@ def normalize_phone(raw: str) -> str:
         national = digits[1:]
     else:
         national = digits
-    return "+92" + national
+    normalized = "+92" + national
+    if not PAKISTANI_MOBILE_PATTERN.match(normalized):
+        raise ValueError(f"'{raw}' is not a valid Pakistani mobile number")
+    return normalized
 
 
 def validate_date_of_birth(dob: date, today: date) -> None:
