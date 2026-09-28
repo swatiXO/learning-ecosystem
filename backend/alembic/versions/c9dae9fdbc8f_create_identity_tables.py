@@ -1,7 +1,7 @@
 """create identity tables
 
 Revision ID: c9dae9fdbc8f
-Revises: 0d07cdd64f6b
+Revises: 6494fb782e48
 Create Date: 2026-09-28 10:30:24.579967
 
 """
@@ -14,7 +14,7 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 revision: str = "c9dae9fdbc8f"
-down_revision: str | None = "0d07cdd64f6b"
+down_revision: str | None = "6494fb782e48"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
