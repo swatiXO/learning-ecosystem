@@ -32,7 +32,10 @@ class PlanOverrideIn(BaseModel):
 
     @field_validator("modules")
     @classmethod
-    def modules_not_empty(cls, value: list[PlanModuleIn]) -> list[PlanModuleIn]:
+    def validate_modules(cls, value: list[PlanModuleIn]) -> list[PlanModuleIn]:
         if not value:
             raise ValueError("at least one module is required")
+        names = [module.module for module in value]
+        if len(names) != len(set(names)):
+            raise ValueError("duplicate module names are not allowed")
         return value
