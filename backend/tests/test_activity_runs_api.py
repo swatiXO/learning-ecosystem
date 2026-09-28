@@ -5,15 +5,17 @@ from fastapi.testclient import TestClient
 
 from app.db import SessionLocal
 from app.main import app
-from app.models import ChildSession
+from app.models import ChildSession, Week1Progress
+from app.week1.gate import current_day_index
+from app.week1.schedule import activities_for_day
 
 client = TestClient(app)
 
 
-def _create_session() -> uuid.UUID:
+def _create_session(child_id: uuid.UUID | None = None) -> uuid.UUID:
     db = SessionLocal()
     try:
-        session = ChildSession(child_id=uuid.uuid4())
+        session = ChildSession(child_id=child_id or uuid.uuid4())
         db.add(session)
         db.commit()
         db.refresh(session)
@@ -186,3 +188,47 @@ def test_update_activity_run_conflicting_transition_returns_409() -> None:
 def test_update_activity_run_not_found_returns_404() -> None:
     response = client.patch(f"/activity-runs/{uuid.uuid4()}", json={"status": "completed"})
     assert response.status_code == 404
+
+
+def test_completing_days_activities_advances_the_week1_gate() -> None:
+    # End-to-end wiring check: PATCH /activity-runs/{id} is what actually feeds the
+    # week1_progress table (app/week1/gate.py), not just a status field in isolation.
+    child_id = uuid.uuid4()
+    session_id = _create_session(child_id)
+    try:
+        assert current_day_index_for(child_id) == 1
+
+        activities = activities_for_day(1)
+        for i, activity in enumerate(activities):
+            created = client.post(
+                "/activity-runs",
+                json={
+                    "session_id": str(session_id),
+                    "activity": activity,
+                    "activity_version": "1.0.0",
+                    "day_index": 1,
+                },
+            )
+            run_id = created.json()["id"]
+            # Rule #5: a skip still finishes the day, same as a completion.
+            status = "skipped" if i == 0 else "completed"
+            response = client.patch(f"/activity-runs/{run_id}", json={"status": status})
+            assert response.status_code == 200
+
+        assert current_day_index_for(child_id) == 2
+    finally:
+        _delete_session(session_id)
+        db = SessionLocal()
+        try:
+            db.query(Week1Progress).filter_by(child_id=child_id).delete()
+            db.commit()
+        finally:
+            db.close()
+
+
+def current_day_index_for(child_id: uuid.UUID) -> int | None:
+    db = SessionLocal()
+    try:
+        return current_day_index(db, child_id)
+    finally:
+        db.close()

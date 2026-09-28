@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.db import get_db
 from app.models import ActivityRun, ChildSession
 from app.schemas.activity_runs import ActivityRunCreateIn, ActivityRunOut, ActivityRunUpdateIn
+from app.week1.gate import try_complete_day
 
 router = APIRouter(tags=["activity-runs"])
 
@@ -32,6 +33,17 @@ def create_activity_run(payload: ActivityRunCreateIn, db: Session = Depends(get_
     return run
 
 
+def _advance_week1_gate(db: Session, run: ActivityRun) -> None:
+    # Only week-1 runs carry a day_index; later program activities don't participate in
+    # the gate. Idempotent, so it's safe to call on every terminal status, not just the
+    # one that happens to finish the day.
+    if run.day_index is None:
+        return
+    session = db.get(ChildSession, run.session_id)
+    if session is not None:
+        try_complete_day(db, session.child_id, run.day_index)
+
+
 @router.patch("/activity-runs/{run_id}", response_model=ActivityRunOut)
 def update_activity_run(
     run_id: UUID, payload: ActivityRunUpdateIn, db: Session = Depends(get_db)
@@ -43,6 +55,7 @@ def update_activity_run(
     if run.status == payload.status:
         # Same terminal status as already recorded: a retried PATCH from an offline
         # client, not a new event. No-op rather than pushing ended_at forward again.
+        _advance_week1_gate(db, run)
         return run
     if run.status != "started":
         raise HTTPException(
@@ -67,9 +80,11 @@ def update_activity_run(
 
     if result.rowcount == 0:
         if run.status == payload.status:
+            _advance_week1_gate(db, run)
             return run
         raise HTTPException(
             status_code=409,
             detail=f"Activity run is already '{run.status}', cannot set to '{payload.status}'",
         )
+    _advance_week1_gate(db, run)
     return run
