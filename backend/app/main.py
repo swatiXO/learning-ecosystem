@@ -10,6 +10,7 @@ from app.api import (
     profile,
     scoring,
     sessions,
+    today,
 )
 
 app = FastAPI(title="Learning Ecosystem API", version="0.1.0")
@@ -23,3 +24,4 @@ app.include_router(onboarding.router)
 app.include_router(children.router)
 app.include_router(sessions.router)
 app.include_router(activity_runs.router)
+app.include_router(today.router)

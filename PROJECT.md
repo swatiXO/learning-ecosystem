@@ -293,6 +293,15 @@ Add a newest-first entry after each work session: what was built, files touched,
 - Notes/gotchas:
 ```
 
+### 2026-09-28 (Track C, #14)
+- Built: `GET /children/{id}/today`. While `current_day_index()` (#13) is not `None`, returns that day's scheduled activities (`phase: "week1"`). Once week 1 is complete, looks up the active plan (`plan_engine.service.current_plan`, from Track B) and returns `phase: "plan"` with the `plan_id`. 404s (not a 500 or a misleadingly-empty 200) if week 1 is done but no active plan exists yet.
+- Files: `backend/app/api/today.py`, `backend/app/schemas/today.py`, `backend/app/main.py`, `backend/tests/test_today_api.py`.
+- Next: #15 safety flags, #16 media upload (both unblocked, independent of this).
+- Notes/gotchas — two real gaps this issue surfaced but does not fix, both flagged rather than papered over:
+  1. **No module → activity catalog exists.** PRD FR-18 ("each module a set of activities tagged by skill and difficulty") isn't built by any track yet — so once `phase: "plan"`, `activities` is always `[]`. This needs a product/content decision (which activities belong to which module), not an engineering guess, before anyone can fill it in.
+  2. **Nothing auto-generates a plan when week 1 finishes.** `regenerate_plan()` (Track B) exists but nothing calls it automatically — today a plan only exists if `PUT /plan` (therapist override) was used. Until something wires "week1 complete -> recompute scores -> regenerate plan", every child will hit the 404 branch here the moment they finish day 7. Same underlying gap Track B's own 2026-09-24 build log entry already flagged from the other side (scores -> plan wiring); this is the missing "week1 done -> trigger it" half.
+- Depends on #13 (branched from `track-c/week1-schedule-gate`, not `main`) — PR is stacked and should be reviewed/merged after #36.
+
 ### 2026-09-28 (Track C, #13)
 - Built: the 7-day week-1 schedule (`app/week1/schedule.py`, matching PRD §6.2's table exactly — day 7 repeats `stars_not_clouds`/`speak_this_line` per FR-9) and gate logic (`app/week1/gate.py`): `current_day_index` (next unfinished day, or `None` once week 1 is done), `is_week1_complete`, and `try_complete_day` (marks a day done once every scheduled activity has a terminal — completed/skipped/**or quit**, rule #5 — run against it). Wired `try_complete_day` into `PATCH /activity-runs/{id}` (#12) so a day actually gets marked complete as its activities finish, rather than leaving `week1_progress` a table nothing ever writes to. No calendar/date logic anywhere — completion is purely "which days have all their activities logged", so a missed day never costs the child anything (FR-7).
 - Files: `backend/app/week1/schedule.py`, `backend/app/week1/gate.py`, `backend/app/api/activity_runs.py`, `backend/tests/test_week1_schedule.py`, `backend/tests/test_week1_gate.py`, `backend/tests/test_activity_runs_api.py` (added an end-to-end gate-wiring test).
