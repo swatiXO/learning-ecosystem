@@ -69,6 +69,16 @@ def test_validate_date_of_birth_plausible_accepted() -> None:
     validate_date_of_birth(date(2020, 1, 1), date(2026, 1, 1))
 
 
+def test_validate_date_of_birth_supported_range_boundaries() -> None:
+    today = date(2026, 1, 1)
+    with pytest.raises(ValueError):
+        validate_date_of_birth(date(2021, 1, 2), today)  # 4
+    validate_date_of_birth(date(2021, 1, 1), today)  # 5
+    validate_date_of_birth(date(2013, 1, 2), today)  # 12
+    with pytest.raises(ValueError):
+        validate_date_of_birth(date(2013, 1, 1), today)  # 13
+
+
 def test_validate_schooling_requires_school_id_or_name() -> None:
     with pytest.raises(ValueError):
         validate_schooling("school", None, None)
