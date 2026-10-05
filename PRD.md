@@ -37,7 +37,7 @@ A learning app that helps children with ADHD, autism and low self-esteem regulat
 
 | User | Needs |
 |---|---|
-| **Child** (primary; age range TBD) | Fun, calm, no failure, short sessions, sensory control |
+| **Child** (primary; ages 5–12) | Fun, calm, no failure, short sessions, sensory control |
 | **Parent** | Setup in 2–3 minutes, consent control, simple progress view, clear next steps |
 | **Teacher** | Classroom-relevant insights, optional input when invited |
 | **Therapist / specialist** | Detailed signals, ability to adjust plans, referral path |
@@ -210,6 +210,8 @@ A learning app that helps children with ADHD, autism and low self-esteem regulat
 | D5 | Dashboard technology | Flutter web vs React | Front-end staffing |
 | D6 | Hosting and data residency | Local (Pakistan) vs cloud region | Privacy, cost |
 | D7 | Final onboarding field list | Draft in 6.1 (e.g. keep or drop gender; area list granularity) | Onboarding screens, `children` table |
+
+**Decided (2026-10-05):** D1 both (Urdu script, Roman Urdu and English); D2 ages 5–12, bands 5–7 / 8–10 / 11–12; D3 Android tablet; D4 mixed per activity (2026-09-29); D5 Flutter; D7 keep gender, minimal option lists. D6 is partly decided (access model only). Full reasoning is in PROJECT.md §11.
 
 **Decided (2026-09-24):** the intake survey is replaced by a 2–3 minute onboarding of simple context questions. With no parent survey, needs information comes only from week-1 play.
 
