@@ -70,6 +70,27 @@ def test_patch_child_updates_a_field() -> None:
         _cleanup(child_ids=[onboarded["child_id"]], guardian_ids=[onboarded["guardian_id"]])
 
 
+def test_patch_child_who_aged_past_12_can_still_edit_other_fields() -> None:
+    onboarded = _onboard()
+    db = SessionLocal()
+    try:
+        child = db.get(Child, uuid.UUID(onboarded["child_id"]))
+        child.date_of_birth = child.date_of_birth.replace(year=2000)
+        db.commit()
+    finally:
+        db.close()
+    try:
+        response = client.patch(f"/children/{onboarded['child_id']}", json={"area": "lahore"})
+        assert response.status_code == 200
+
+        response = client.patch(
+            f"/children/{onboarded['child_id']}", json={"date_of_birth": "2000-01-01"}
+        )
+        assert response.status_code == 422
+    finally:
+        _cleanup(child_ids=[onboarded["child_id"]], guardian_ids=[onboarded["guardian_id"]])
+
+
 def test_patch_child_school_name_creates_new_school() -> None:
     onboarded = _onboard()
     school_name = f"Patched School {uuid.uuid4().hex[:8]}"

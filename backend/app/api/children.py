@@ -65,10 +65,13 @@ def update_child(child_id: UUID, payload: ChildUpdateIn, db: Session = Depends(g
     school_name = updates.get("school_name")
     effective_school_id = explicit_school_id if "school_id" in updates else child.school_id
 
-    try:
-        validate_date_of_birth(final_dob, datetime.now(UTC).date())
-    except ValueError as exc:
-        raise _validation_error([("date_of_birth", str(exc), final_dob)]) from exc
+    # Only check the age range when the DOB itself is being changed: a child who has
+    # aged past 12 since onboarding must still be able to edit their other fields.
+    if "date_of_birth" in updates:
+        try:
+            validate_date_of_birth(final_dob, datetime.now(UTC).date())
+        except ValueError as exc:
+            raise _validation_error([("date_of_birth", str(exc), final_dob)]) from exc
 
     try:
         validate_schooling(final_schooling, effective_school_id, school_name)

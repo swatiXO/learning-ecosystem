@@ -8,8 +8,9 @@ from uuid import UUID
 
 from app.onboarding.age import age_in_years
 
-MIN_PLAUSIBLE_AGE = 3
-MAX_PLAUSIBLE_AGE = 18
+# D2 (decision log 2026-10-05): the product supports ages 5-12.
+MIN_SUPPORTED_AGE = 5
+MAX_SUPPORTED_AGE = 12
 
 # +92 followed by a 10-digit Pakistani mobile number (starts with 3). Excludes
 # landlines, which don't start with 3.
@@ -37,10 +38,10 @@ def validate_date_of_birth(dob: date, today: date) -> None:
     if dob > today:
         raise ValueError("date of birth cannot be in the future")
     age = age_in_years(dob, today)
-    if age < MIN_PLAUSIBLE_AGE or age > MAX_PLAUSIBLE_AGE:
+    if age < MIN_SUPPORTED_AGE or age > MAX_SUPPORTED_AGE:
         raise ValueError(
-            f"date of birth implies age {age}, which is outside the plausible range "
-            f"{MIN_PLAUSIBLE_AGE}-{MAX_PLAUSIBLE_AGE}"
+            f"date of birth implies age {age}, which is outside the supported range "
+            f"{MIN_SUPPORTED_AGE}-{MAX_SUPPORTED_AGE}"
         )
 
 

@@ -1,13 +1,13 @@
 from datetime import date
 
-# Placeholder, pending open decision D2 (target age range). Bands are (min_age, max_age,
-# band_key); max_age=None means "and up".
+# D2 (decision log 2026-10-05): ages 5-12, bands 5-7 / 8-10 / 11-12. Bands are (min_age,
+# max_age, band_key); max_age=None means "and up". Onboarding only accepts 5-12, but a
+# child who turns 13 while enrolled stays in the oldest band rather than falling out of
+# every band.
 AGE_BANDS: tuple[tuple[int, int | None, str], ...] = (
-    (0, 4, "under_5"),
     (5, 7, "5_7"),
     (8, 10, "8_10"),
-    (11, 13, "11_13"),
-    (14, None, "14_plus"),
+    (11, None, "11_12"),
 )
 
 
